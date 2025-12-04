@@ -79,9 +79,9 @@
   <ul>
     <li><a onclick="switchTab('home')">Home</a></li>
     <li id="addFeederTab"><a onclick="switchTab('add-feeder')">Add Feeder</a></li>
-    <li><a onclick="switchTab('daily-feed')">Daily Feed</a></li>
-    <li><a onclick="switchTab('special-feed')">Special Feed</a></li>
-    <li><a onclick="switchTab('feeder-logs')">Feeder Logs</a></li>
+    <li id="dailyFeedTab"><a onclick="switchTab('daily-feed')">Daily Feed</a></li>
+    <li id="specialFeedTab"><a onclick="switchTab('special-feed')">Special Feed</a></li>
+    <li id="feederLogsTab"><a onclick="switchTab('feeder-logs')">Feeder Logs</a></li>
     <li id="masterTab" class="hidden"><a onclick="switchTab('user-data')">User Logins</a></li>
     <li id="masterAddTab" class="hidden"><a onclick="switchTab('master-add-units')">Add Units (Master)</a></li>
   </ul>
@@ -125,6 +125,7 @@
         <tr>
             <th>Unit Number</th>
             <th>Custom Name</th>
+            <th>Action</th>
         </tr>
     </table>
 </div>
@@ -190,7 +191,6 @@
 </div>
 
 <script>
-// USER DATA
 let users = [];
 let units = [];
 let masterUnits = [];
@@ -237,6 +237,11 @@ function login() {
         // Hide regular user tab
         document.getElementById("addFeederTab").classList.add("hidden");
 
+        // Hide Daily Feed, Special Feed, Feeder Logs
+        document.getElementById("dailyFeedTab").classList.add("hidden");
+        document.getElementById("specialFeedTab").classList.add("hidden");
+        document.getElementById("feederLogsTab").classList.add("hidden");
+
         updateMyFeeders();
         return;
     }
@@ -249,10 +254,13 @@ function login() {
         currentUser = user;
         document.getElementById("lockscreen").style.display = "none";
 
-        // Regular users only see "Add Feeder"
         document.getElementById("masterTab").classList.add("hidden");
         document.getElementById("masterAddTab").classList.add("hidden");
+
         document.getElementById("addFeederTab").classList.remove("hidden");
+        document.getElementById("dailyFeedTab").classList.remove("hidden");
+        document.getElementById("specialFeedTab").classList.remove("hidden");
+        document.getElementById("feederLogsTab").classList.remove("hidden");
 
         document.getElementById("myFeedersSection").classList.remove("hidden");
         updateMyFeeders();
@@ -268,6 +276,9 @@ function logout() {
     document.getElementById("masterTab").classList.add("hidden");
     document.getElementById("masterAddTab").classList.add("hidden");
     document.getElementById("addFeederTab").classList.remove("hidden");
+    document.getElementById("dailyFeedTab").classList.remove("hidden");
+    document.getElementById("specialFeedTab").classList.remove("hidden");
+    document.getElementById("feederLogsTab").classList.remove("hidden");
     document.getElementById("myFeedersSection").classList.add("hidden");
     switchTab('home');
 }
@@ -352,11 +363,29 @@ function addUserUnit() {
     updateMyFeeders();
 }
 
+// REMOVE UNIT (Regular users)
+function removeUserUnit(unitNumber) {
+    units = units.filter(u => u.number !== unitNumber);
+    let masterUnit = masterUnits.find(u => u.number === unitNumber);
+    if(masterUnit) { masterUnit.claimedBy="Unclaimed"; masterUnit.customName=""; }
+    updateUnitTable();
+    updateMyFeeders();
+    updateMasterUnitTable();
+}
+
 // UPDATE UNIT TABLE
 function updateUnitTable(){
     let table=document.getElementById("unitTable");
-    table.innerHTML=`<tr><th>Unit Number</th><th>Custom Name</th></tr>`;
-    units.forEach(u=>table.innerHTML+=`<tr><td>${u.number}</td><td>${u.name||""}</td></tr>`);
+    table.innerHTML=`<tr><th>Unit Number</th><th>Custom Name</th><th>Action</th></tr>`;
+    units.forEach(u=>{
+        if(masterUnits.find(m=>m.number===u.number && m.claimedBy===currentUser)){
+            table.innerHTML+=`<tr>
+                <td>${u.number}</td>
+                <td>${u.name||""}</td>
+                <td><button onclick="removeUserUnit('${u.number}')">Remove</button></td>
+            </tr>`;
+        }
+    });
 }
 
 // MY FEEDERS
