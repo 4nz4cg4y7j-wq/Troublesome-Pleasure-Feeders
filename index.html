@@ -3,50 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Caleb’s Creations & Feeder Dashboard</title>
+<title>Deer Feeder Dashboard</title>
 <style>
     body { font-family: Arial; margin: 0; padding: 0; }
 
-    /* Header for Troublesome Pleasures */
-    #tpHeader {
-        width: 100%;
-        background: #222;
-        color: white;
-        padding: 15px;
-        font-size: 22px;
-        text-align: center;
-        cursor: pointer;
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 99999;
-    }
-
-    /* Store Page */
-    #storePage {
-        position: fixed;
-        inset: 0;
-        background: #f4f4f4;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 30px;
-        overflow-y: auto;
-        z-index: 10000;
-        padding-top: 80px; /* space for header */
-    }
-
-    .product-card {
-        background: white;
-        border: 1px solid #ccc;
-        padding: 15px;
-        width: 90%;
-        max-width: 600px;
-        margin-bottom: 15px;
-        border-radius: 5px;
-    }
-
-    nav { background: #333; color: white; padding: 10px; margin-top: 60px; }
+    nav { background: #333; color: white; padding: 10px; margin-top: 0; }
     nav ul { list-style: none; display: flex; gap: 20px; margin: 0; padding: 0; }
     nav a { color: white; text-decoration: none; cursor: pointer; }
 
@@ -99,30 +60,6 @@
 </style>
 </head>
 <body>
-
-<!-- ⭐ HEADER REDIRECT TO TROUBLESOME PLEASURES (Under wowcaleb) -->
-<div id="tpHeader" onclick="window.location.href='/troublesomepleasures'">
-    Troublesome Pleasures
-</div>
-
-<!-- ⭐ FRONT STORE PAGE -->
-<div id="storePage">
-    <h1 style="font-size: 40px; margin-bottom: 10px;">Caleb’s Creations</h1>
-    <p style="font-size: 18px;">Hand-Made Products, Outdoor Gear & Feeder Equipment</p>
-
-    <div id="productList"></div>
-
-    <button onclick="enterDashboard()" style="
-        padding: 12px 20px;
-        margin-top: 40px;
-        font-size: 18px;
-        background: #333;
-        color: white;
-        border: none;
-        cursor: pointer;
-        border-radius: 5px;
-    ">Enter Dashboard</button>
-</div>
 
 <!-- ⭐ LOCK SCREEN -->
 <div id="lockscreen">
@@ -256,33 +193,6 @@
 </div>
 
 <script>
-/* ⭐ FRONT STORE PRODUCTS */
-let products = [
-    {name: "Custom Deer Feeder Housing", price: "$45", desc: "Metal or printed housing ready for any feeder system."},
-    {name: "Cellular Feeder Controller", price: "$60", desc: "Control your feeder from anywhere."},
-    {name: "Outdoor Battery Pack", price: "$20", desc: "12V battery pack for feeders."}
-];
-
-function loadProducts() {
-    let list = document.getElementById("productList");
-    list.innerHTML = "";
-    products.forEach(p => {
-        list.innerHTML += `
-            <div class="product-card">
-                <h2>${p.name}</h2>
-                <p>${p.desc}</p>
-                <strong>${p.price}</strong>
-            </div>
-        `;
-    });
-}
-loadProducts();
-
-function enterDashboard() {
-    document.getElementById("storePage").style.display = "none";
-}
-
-/* ⭐ DASHBOARD LOGIC */
 let users = [];
 let units = [];
 let masterUnits = [];
@@ -316,39 +226,31 @@ function login() {
     let user = document.getElementById("loginUsername").value.trim();
     let pass = document.getElementById("loginPassword").value.trim();
 
-    // MASTER LOGIN
     if (user === "Mastermode" && pass === MASTER_CODE) {
         isMaster = true;
         currentUser = "Mastermode";
         document.getElementById("lockscreen").style.display = "none";
-
         document.getElementById("masterTab").classList.remove("hidden");
         document.getElementById("masterAddTab").classList.remove("hidden");
-
         document.getElementById("addFeederTab").classList.add("hidden");
         document.getElementById("dailyFeedTab").classList.add("hidden");
         document.getElementById("specialFeedTab").classList.add("hidden");
         document.getElementById("feederLogsTab").classList.add("hidden");
-
         updateMyFeeders();
         return;
     }
 
     let found = users.find(u => u.username === user && u.password === pass);
-
     if (found) {
         isMaster = false;
         currentUser = user;
         document.getElementById("lockscreen").style.display = "none";
-
         document.getElementById("masterTab").classList.add("hidden");
         document.getElementById("masterAddTab").classList.add("hidden");
-
         document.getElementById("addFeederTab").classList.remove("hidden");
         document.getElementById("dailyFeedTab").classList.remove("hidden");
         document.getElementById("specialFeedTab").classList.remove("hidden");
         document.getElementById("feederLogsTab").classList.remove("hidden");
-
         document.getElementById("myFeedersSection").classList.remove("hidden");
         updateMyFeeders();
     } else {
