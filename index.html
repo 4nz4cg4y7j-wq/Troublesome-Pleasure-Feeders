@@ -2,30 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Caleb's Creations</title>
 <style>
-  body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f9f9f9; }
-  .top-bar { background:#333; color:white; display:flex; justify-content:space-between; align-items:center; padding:15px 20px; position:sticky; top:0; z-index:1000;}
-  .top-left, .top-right a { font-size:20px; font-weight:bold; color:white; text-decoration:none; cursor:pointer; }
-  .container { max-width:800px; margin:auto; padding:20px; }
-  input[type=text], input[type=number], input[type=password], input[type=url] { width:100%; padding:5px; margin:5px 0; }
-  ul { list-style:none; padding:0; }
-  li { padding:10px; border-bottom:1px solid #ccc; display:flex; justify-content:space-between; align-items:center; background:white; margin-bottom:5px; border-radius:5px; }
-  .product-img { max-width:50px; max-height:50px; margin-right:10px; border-radius:3px; }
-  .price { font-weight:bold; margin-left:10px; }
-  .add-cart-btn, .delete-btn, .add-product-btn { cursor:pointer; padding:5px 10px; border-radius:3px; border:none; color:white; }
-  .add-cart-btn { background:green; }
-  .delete-btn { background:red; }
-  .add-product-btn { background:blue; margin-top:5px; }
-  .cart { background:white; padding:10px; margin-top:20px; border-radius:5px; border:1px solid #ccc; }
-  .cart h3 { margin-top:0; }
-  .cart-item { display:flex; justify-content:space-between; margin-bottom:5px; }
-  .hidden { display:none; }
+body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f9f9f9; }
+.top-bar { background:#333; color:white; display:flex; justify-content:space-between; align-items:center; padding:15px 20px; position:sticky; top:0; z-index:1000;}
+.top-left { font-size:20px; font-weight:bold;}
+.top-right a { color:white; text-decoration:none; font-weight:bold;}
+.container { max-width:800px; margin:auto; padding:20px;}
+ul { list-style:none; padding:0; }
+li { padding:10px; border-bottom:1px solid #ccc; display:flex; justify-content:space-between; align-items:center; background:white; margin-bottom:5px; border-radius:5px;}
+.price { font-weight:bold; }
+.add-cart-btn { cursor:pointer; margin-left:10px; padding:5px 10px; border-radius:3px; border:none; background-color:green; color:white;}
+.cart { background:white; padding:10px; margin-top:20px; border-radius:5px; border:1px solid #ccc;}
+.cart h3 { margin-top:0; }
+.cart-item { display:flex; justify-content:space-between; margin-bottom:5px;}
+.delete-btn { background-color:red; color:white; border:none; padding:5px 10px; border-radius:3px; cursor:pointer;}
+.search-box { margin-bottom:15px;}
+.search-box input { width:100%; padding:8px; font-size:16px;}
 </style>
 </head>
 <body>
 
-<!-- Top Bar -->
 <div class="top-bar">
   <div class="top-left">Caleb's Creations</div>
   <div class="top-right">
@@ -34,212 +32,79 @@
 </div>
 
 <div class="container">
-  <!-- Master Mode Login (hidden unless URL contains 'mastermode') -->
-  <div id="master-login" class="hidden">
-    <h2>Master Mode Login</h2>
-    <input type="password" id="masterCodeInput" placeholder="Enter Master Code">
-    <button onclick="loginMaster()">Login</button>
+  <h2>Products</h2>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search products..." oninput="displayProducts()">
   </div>
+  <ul id="product-list"></ul>
 
-  <!-- Master Mode Dashboard -->
-  <div id="master-dashboard" class="hidden">
-    <h2>Master Dashboard</h2>
-    <h3>Add New Product</h3>
-    <input type="text" id="newProductName" placeholder="Product Name">
-    <input type="number" id="newProductPrice" placeholder="Price" min="0" step="0.01">
-    <input type="text" id="newProductFeature" placeholder="Feature (optional)">
-    <input type="url" id="newProductImg" placeholder="Image URL (optional)">
-    <input type="number" id="newProductLimit" placeholder="Max Quantity per Customer" min="1">
-    <button class="add-product-btn" onclick="addProduct()">Add Product</button>
-
-    <h3>Existing Products</h3>
-    <ul id="master-product-list"></ul>
-
-    <h3>Orders / Cart Items</h3>
-    <ul id="orders-list"></ul>
-
-    <button onclick="logoutMaster()">Logout</button>
-  </div>
-
-  <!-- Customer Site -->
-  <div id="customer-site">
-    <input type="text" id="productSearch" placeholder="Search products..." onkeyup="searchProducts()">
-    <h2>Products</h2>
-    <ul id="product-list"></ul>
-
-    <div class="cart">
-      <h3>Shopping Cart</h3>
-      <div id="cart-items"></div>
-      <p><strong>Total: $<span id="cart-total">0.00</span></strong></p>
-    </div>
+  <div class="cart">
+    <h3>Shopping Cart</h3>
+    <div id="cart-items"></div>
+    <p><strong>Total: $<span id="cart-total">0.00</span></strong></p>
   </div>
 </div>
 
 <script>
-  const MASTER_CODE = "9999";
-  let products = [
-    {name:"Product 1", price:19.99, feature:"Limited Edition", img:"https://via.placeholder.com/50", maxPerCustomer:5},
-    {name:"Product 2", price:9.99, feature:"Best Seller", img:"https://via.placeholder.com/50", maxPerCustomer:3},
-    {name:"Product 3", price:14.99, feature:"New Arrival", img:"https://via.placeholder.com/50", maxPerCustomer:2}
-  ];
-  let cart = [];
+// Load products from localStorage
+let products = JSON.parse(localStorage.getItem('products')) || [];
+let cart = [];
 
-  // Show Master Mode login only if URL contains 'mastermode'
-  if(window.location.href.includes('mastermode')){
-    document.getElementById("master-login").classList.remove("hidden");
-    document.getElementById("customer-site").classList.add("hidden");
+function displayProducts() {
+  const list = document.getElementById('product-list');
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  list.innerHTML = '';
+  products.filter(p => p.name.toLowerCase().includes(search)).forEach((p, index) => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span>${p.name} ${p.stock!==undefined?'(Stock: '+p.stock+')':''}</span>
+      ${p.img?`<img src="${p.img}" width="50" height="50" style="margin-left:10px;">`:''}
+      <span class="price">$${p.price.toFixed(2)}</span>
+      <button class="add-cart-btn" onclick="addToCart(${index})">Add to Cart</button>
+    `;
+    list.appendChild(li);
+  });
+}
+
+function addToCart(index) {
+  const product = products[index];
+  if(product.stock!==undefined && product.stock <=0){
+    alert("Out of stock!");
+    return;
   }
-
-  // --- Master Mode ---
-  function loginMaster() {
-    const code = document.getElementById("masterCodeInput").value;
-    if(code === MASTER_CODE){
-      document.getElementById("master-login").classList.add("hidden");
-      document.getElementById("master-dashboard").classList.remove("hidden");
-      displayMasterProducts();
-      displayOrders();
-    } else {
-      alert("Incorrect Master Code!");
-    }
-  }
-
-  function logoutMaster(){
-    document.getElementById("master-login").classList.remove("hidden");
-    document.getElementById("master-dashboard").classList.add("hidden");
-    document.getElementById("masterCodeInput").value = "";
-  }
-
-  function addProduct() {
-    const name = document.getElementById("newProductName").value.trim();
-    const price = parseFloat(document.getElementById("newProductPrice").value);
-    const feature = document.getElementById("newProductFeature").value.trim();
-    const img = document.getElementById("newProductImg").value.trim();
-    const max = parseInt(document.getElementById("newProductLimit").value);
-
-    if(!name || isNaN(price) || isNaN(max) || max < 1) { alert("Fill name, price, and max quantity!"); return; }
-
-    products.push({name, price, feature, img, maxPerCustomer:max});
-    displayProducts();
-    displayMasterProducts();
-
-    document.getElementById("newProductName").value="";
-    document.getElementById("newProductPrice").value="";
-    document.getElementById("newProductFeature").value="";
-    document.getElementById("newProductImg").value="";
-    document.getElementById("newProductLimit").value="";
-  }
-
-  function deleteProduct(index){
-    if(confirm("Delete this product?")){
-      products.splice(index,1);
-      displayProducts();
-      displayMasterProducts();
-    }
-  }
-
-  function displayMasterProducts(){
-    const list = document.getElementById("master-product-list");
-    list.innerHTML="";
-    products.forEach((p,index)=>{
-      const li = document.createElement("li");
-      li.innerHTML = `${p.name} - $${p.price.toFixed(2)} - Max: ${p.maxPerCustomer} <button class="delete-btn" onclick="deleteProduct(${index})">Delete</button>`;
-      list.appendChild(li);
-    });
-  }
-
-  // --- Customer Site ---
-  function displayProducts(){
-    const list = document.getElementById("product-list");
-    list.innerHTML="";
-    products.forEach((p,index)=>{
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <div style="display:flex; align-items:center;">
-          ${p.img?`<img src="${p.img}" class="product-img">`:''}
-          <span>${p.name}</span>
-          <span class="price">$${p.price.toFixed(2)}</span>
-        </div>
-        <div>
-          <span>${p.feature||''}</span>
-          <button class="add-cart-btn" onclick="addToCart(${index})">Add to Cart</button>
-        </div>
-      `;
-      list.appendChild(li);
-    });
-  }
-
-  function searchProducts(){
-    const query = document.getElementById("productSearch").value.toLowerCase();
-    const list = document.getElementById("product-list");
-    list.innerHTML="";
-    products.forEach((p,index)=>{
-      if(p.name.toLowerCase().includes(query) || (p.feature && p.feature.toLowerCase().includes(query))){
-        const li = document.createElement("li");
-        li.innerHTML = `
-          <div style="display:flex; align-items:center;">
-            ${p.img?`<img src="${p.img}" class="product-img">`:''}
-            <span>${p.name}</span>
-            <span class="price">$${p.price.toFixed(2)}</span>
-          </div>
-          <div>
-            <span>${p.feature||''}</span>
-            <button class="add-cart-btn" onclick="addToCart(${index})">Add to Cart</button>
-          </div>
-        `;
-        list.appendChild(li);
-      }
-    });
-  }
-
-  // --- Cart ---
-  function addToCart(index){
-    const product = products[index];
-    const countInCart = cart.filter(p=>p.name===product.name).length;
-    if(countInCart >= product.maxPerCustomer){
-      alert(`You can only add up to ${product.maxPerCustomer} of this product.`);
-      return;
-    }
-    cart.push(product);
-    displayCart();
-    displayOrders();
-  }
-
-  function displayCart(){
-    const cartItems = document.getElementById("cart-items");
-    cartItems.innerHTML="";
-    let total = 0;
-    cart.forEach((item,idx)=>{
-      total+=item.price;
-      const div = document.createElement("div");
-      div.className="cart-item";
-      div.innerHTML=`<span>${item.name} - $${item.price.toFixed(2)}</span>
-      <button class="delete-btn" onclick="removeFromCart(${idx})">X</button>`;
-      cartItems.appendChild(div);
-    });
-    document.getElementById("cart-total").textContent=total.toFixed(2);
-  }
-
-  function removeFromCart(idx){
-    cart.splice(idx,1);
-    displayCart();
-    displayOrders();
-  }
-
-  // --- Orders (Master) ---
-  function displayOrders(){
-    const list = document.getElementById("orders-list");
-    list.innerHTML="";
-    cart.forEach((item,idx)=>{
-      const li = document.createElement("li");
-      li.textContent = `${item.name} - $${item.price.toFixed(2)}`;
-      list.appendChild(li);
-    });
-  }
-
-  // --- Init ---
-  displayProducts();
+  cart.push(product);
+  if(product.stock!==undefined) product.stock--; 
   displayCart();
+  displayProducts();
+  localStorage.setItem('products', JSON.stringify(products));
+}
 
+function displayCart() {
+  const cartItems = document.getElementById('cart-items');
+  cartItems.innerHTML = '';
+  let total = 0;
+  cart.forEach((item, idx) => {
+    total += item.price;
+    const div = document.createElement('div');
+    div.className = 'cart-item';
+    div.innerHTML = `<span>${item.name} - $${item.price.toFixed(2)}</span>
+                     <button class="delete-btn" onclick="removeFromCart(${idx})">X</button>`;
+    cartItems.appendChild(div);
+  });
+  document.getElementById('cart-total').textContent = total.toFixed(2);
+}
+
+function removeFromCart(idx) {
+  const product = cart[idx];
+  if(product.stock!==undefined) product.stock++;
+  cart.splice(idx, 1);
+  displayCart();
+  displayProducts();
+}
+
+displayProducts();
+displayCart();
 </script>
+
 </body>
 </html>
