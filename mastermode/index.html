@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caleb's Creations - Master Mode</title>
+<style>
+body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f9f9f9; }
+.container { max-width:800px; margin:auto; padding:20px;}
+input, button { padding:8px; margin:5px;}
+button { cursor:pointer;}
+.product-item { background:white; padding:10px; margin-bottom:10px; border-radius:5px; display:flex; justify-content:space-between; align-items:center; }
+.product-item img { width:50px; height:50px; margin-right:10px;}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Master Mode Login</h1>
+  <input type="password" id="masterCodeInput" placeholder="Enter Master Code">
+  <button onclick="loginMaster()">Login</button>
+
+  <div id="dashboard" style="display:none;">
+    <h2>Products Dashboard</h2>
+    <div>
+      <input type="text" id="prodName" placeholder="Product Name">
+      <input type="number" id="prodPrice" placeholder="Price">
+      <input type="number" id="prodStock" placeholder="Stock">
+      <input type="text" id="prodImg" placeholder="Image URL">
+      <button onclick="addProduct()">Add Product</button>
+    </div>
+    <div id="productsList"></div>
+
+    <h2>Pending Orders</h2>
+    <div id="ordersList"></div>
+  </div>
+</div>
+
+<script>
+const MASTER_CODE = "SECRET123"; // Change to your own code
+let products = JSON.parse(localStorage.getItem('products')) || [];
+let orders = JSON.parse(localStorage.getItem('orders')) || [];
+
+function loginMaster() {
+  const code = document.getElementById('masterCodeInput').value;
+  if(code===MASTER_CODE){
+    document.getElementById('dashboard').style.display='block';
+    displayProducts();
+    displayOrders();
+    document.getElementById('masterCodeInput').style.display='none';
+  } else {
+    alert("Incorrect code!");
+  }
+}
+
+function addProduct() {
+  const name = document.getElementById('prodName').value;
+  const price = parseFloat(document.getElementById('prodPrice').value);
+  const stock = parseInt(document.getElementById('prodStock').value);
+  const img = document.getElementById('prodImg').value;
+  if(!name || isNaN(price)){ alert("Fill name and price"); return; }
+  products.push({name, price, stock, img});
+  localStorage.setItem('products', JSON.stringify(products));
+  displayProducts();
+}
+
+function displayProducts() {
+  const container = document.getElementById('productsList');
+  container.innerHTML = '';
+  products.forEach((p,index)=>{
+    const div = document.createElement('div');
+    div.className = 'product-item';
+    div.innerHTML = `<span>${p.name} (Price: $${p.price.toFixed(2)} Stock: ${p.stock!==undefined?p.stock:"N/A"})</span>
+                     ${p.img?`<img src="${p.img}">`:''}
+                     <button onclick="deleteProduct(${index})">Delete</button>`;
+    container.appendChild(div);
+  });
+}
+
+function deleteProduct(index){
+  products.splice(index,1);
+  localStorage.setItem('products', JSON.stringify(products));
+  displayProducts();
+}
+
+// Orders tracking (example, will require extra implementation for full tracking)
+function displayOrders() {
+  const container = document.getElementById('ordersList');
+  container.innerHTML='';
+  if(orders.length===0){ container.innerHTML='<p>No pending orders.</p>'; return;}
+  orders.forEach((o,index)=>{
+    const div = document.createElement('div');
+    div.innerHTML=`<span>${o.name} - $${o.price}</span>`;
+    container.appendChild(div);
+  });
+}
+</script>
+
+</body>
+</html>
