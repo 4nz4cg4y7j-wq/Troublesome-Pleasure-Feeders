@@ -3,12 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Deer Feeder Dashboard</title>
+<title>Caleb’s Creations & Feeder Dashboard</title>
 <style>
     body { font-family: Arial; margin: 0; padding: 0; }
-    nav { background: #333; color: white; padding: 10px; }
-    nav ul { list-style: none; display: flex; gap: 20px; margin: 0; }
+
+    /* Header for Troublesome Pleasures */
+    #tpHeader {
+        width: 100%;
+        background: #222;
+        color: white;
+        padding: 15px;
+        font-size: 22px;
+        text-align: center;
+        cursor: pointer;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 99999;
+    }
+
+    /* Store Page */
+    #storePage {
+        position: fixed;
+        inset: 0;
+        background: #f4f4f4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 30px;
+        overflow-y: auto;
+        z-index: 10000;
+        padding-top: 80px; /* space for header */
+    }
+
+    .product-card {
+        background: white;
+        border: 1px solid #ccc;
+        padding: 15px;
+        width: 90%;
+        max-width: 600px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+    }
+
+    nav { background: #333; color: white; padding: 10px; margin-top: 60px; }
+    nav ul { list-style: none; display: flex; gap: 20px; margin: 0; padding: 0; }
     nav a { color: white; text-decoration: none; cursor: pointer; }
+
     .hidden { display: none; }
     .tab-content { padding: 20px; display: none; }
     .active { display: block; }
@@ -41,6 +82,7 @@
 
     table { width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #ccc; padding: 8px; }
+
     #logTableContainer, #unitListContainer, #masterUnitListContainer, #userTableContainer {
         max-height: 300px;
         overflow-y: auto;
@@ -58,7 +100,31 @@
 </head>
 <body>
 
-<!-- LOCK SCREEN -->
+<!-- ⭐ HEADER REDIRECT TO TROUBLESOME PLEASURES (Under wowcaleb) -->
+<div id="tpHeader" onclick="window.location.href='/troublesomepleasures'">
+    Troublesome Pleasures
+</div>
+
+<!-- ⭐ FRONT STORE PAGE -->
+<div id="storePage">
+    <h1 style="font-size: 40px; margin-bottom: 10px;">Caleb’s Creations</h1>
+    <p style="font-size: 18px;">Hand-Made Products, Outdoor Gear & Feeder Equipment</p>
+
+    <div id="productList"></div>
+
+    <button onclick="enterDashboard()" style="
+        padding: 12px 20px;
+        margin-top: 40px;
+        font-size: 18px;
+        background: #333;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+    ">Enter Dashboard</button>
+</div>
+
+<!-- ⭐ LOCK SCREEN -->
 <div id="lockscreen">
     <h1>Login Required</h1>
     <input type="text" id="loginUsername" placeholder="Username">
@@ -74,7 +140,7 @@
     <div id="success-check">✔ Registration Successful!</div>
 </div>
 
-<!-- NAVIGATION -->
+<!-- ⭐ NAVIGATION -->
 <nav>
   <ul>
     <li><a onclick="switchTab('home')">Home</a></li>
@@ -87,18 +153,16 @@
   </ul>
 </nav>
 
-<!-- HOME -->
+<!-- ⭐ HOME -->
 <div id="home" class="tab-content active">
   <h1>Welcome to Deer Feeder Dashboard</h1>
   <button id="homeLogoutBtn" onclick="logout()">Logout</button>
 
-  <!-- MY FEEDERS -->
   <div id="myFeedersSection" class="hidden">
       <h2>My Feeders</h2>
       <ul id="myFeedersList"></ul>
   </div>
 
-  <!-- EDIT CUSTOM NAME FORM -->
   <div id="editCustomNameForm">
       <h3>Change Custom Name</h3>
       <label>Old Name:</label>
@@ -110,7 +174,7 @@
   </div>
 </div>
 
-<!-- ADD FEEDER (Regular users) -->
+<!-- ⭐ ADD FEEDER -->
 <div id="add-feeder" class="tab-content">
     <h1>Add Feeder Unit</h1>
     <label>Unit Number:</label>
@@ -130,6 +194,7 @@
     </table>
 </div>
 
+<!-- ⭐ OTHER TABS -->
 <div id="daily-feed" class="tab-content">
   <h1>Daily Feed</h1>
 </div>
@@ -153,7 +218,7 @@
   </div>
 </div>
 
-<!-- MASTER ADD UNITS -->
+<!-- ⭐ MASTER ADD UNITS -->
 <div id="master-add-units" class="tab-content">
     <h1>Master Add Units</h1>
     <form id="masterAddUnitForm">
@@ -178,7 +243,7 @@
     </div>
 </div>
 
-<!-- MASTER USER LOGINS -->
+<!-- ⭐ MASTER USER TABLE -->
 <div id="user-data" class="tab-content">
   <h1>Registered Users</h1>
   <table id="userTable">
@@ -191,35 +256,62 @@
 </div>
 
 <script>
+/* ⭐ FRONT STORE PRODUCTS */
+let products = [
+    {name: "Custom Deer Feeder Housing", price: "$45", desc: "Metal or printed housing ready for any feeder system."},
+    {name: "Cellular Feeder Controller", price: "$60", desc: "Control your feeder from anywhere."},
+    {name: "Outdoor Battery Pack", price: "$20", desc: "12V battery pack for feeders."}
+];
+
+function loadProducts() {
+    let list = document.getElementById("productList");
+    list.innerHTML = "";
+    products.forEach(p => {
+        list.innerHTML += `
+            <div class="product-card">
+                <h2>${p.name}</h2>
+                <p>${p.desc}</p>
+                <strong>${p.price}</strong>
+            </div>
+        `;
+    });
+}
+loadProducts();
+
+function enterDashboard() {
+    document.getElementById("storePage").style.display = "none";
+}
+
+/* ⭐ DASHBOARD LOGIC */
 let users = [];
 let units = [];
 let masterUnits = [];
-const MASTER_CODE = "9999"; // Master password
+const MASTER_CODE = "9999";
 let currentUser = "";
 let isMaster = false;
 let editingUnitNumber = "";
 
-// TAB SWITCH
+/* TAB SWITCH */
 function switchTab(tabId) {
     document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
     document.getElementById(tabId).classList.add("active");
-    if(tabId==='home' && currentUser) updateMyFeeders();
+    if (tabId === 'home' && currentUser) updateMyFeeders();
 }
 
-// REGISTER USER
+/* REGISTER USER */
 function registerUser() {
     let user = document.getElementById("regUser").value;
     let email = document.getElementById("regEmail").value;
     let pass = document.getElementById("regPass").value;
-    if(!user || !email || !pass) { alert("Fill all fields"); return; }
+    if (!user || !email || !pass) { alert("Fill all fields"); return; }
 
     users.push({username:user,email:email,password:pass});
     document.getElementById("success-check").style.display = "block";
-    setTimeout(()=>document.getElementById("success-check").style.display="none",2000);
+    setTimeout(() => document.getElementById("success-check").style.display = "none", 2000);
     updateUserTable();
 }
 
-// LOGIN
+/* LOGIN */
 function login() {
     let user = document.getElementById("loginUsername").value.trim();
     let pass = document.getElementById("loginPassword").value.trim();
@@ -230,14 +322,10 @@ function login() {
         currentUser = "Mastermode";
         document.getElementById("lockscreen").style.display = "none";
 
-        // Show master tabs
         document.getElementById("masterTab").classList.remove("hidden");
         document.getElementById("masterAddTab").classList.remove("hidden");
 
-        // Hide regular user tab
         document.getElementById("addFeederTab").classList.add("hidden");
-
-        // Hide Daily Feed, Special Feed, Feeder Logs
         document.getElementById("dailyFeedTab").classList.add("hidden");
         document.getElementById("specialFeedTab").classList.add("hidden");
         document.getElementById("feederLogsTab").classList.add("hidden");
@@ -246,7 +334,6 @@ function login() {
         return;
     }
 
-    // REGULAR USER LOGIN
     let found = users.find(u => u.username === user && u.password === pass);
 
     if (found) {
@@ -269,7 +356,7 @@ function login() {
     }
 }
 
-// LOGOUT
+/* LOGOUT */
 function logout() {
     currentUser = ""; isMaster=false;
     document.getElementById("lockscreen").style.display="flex";
@@ -283,77 +370,84 @@ function logout() {
     switchTab('home');
 }
 
-// USER TABLE
+/* USER TABLE */
 function updateUserTable() {
     let table = document.getElementById("userTable");
     table.innerHTML = `<tr><th>Username</th><th>Email</th><th>Password</th></tr>`;
-    users.forEach(u=>{
-        table.innerHTML+=`<tr><td>${u.username}</td><td>${u.email}</td><td>${u.password}</td></tr>`;
+    users.forEach(u => {
+        table.innerHTML += `<tr><td>${u.username}</td><td>${u.email}</td><td>${u.password}</td></tr>`;
     });
 }
 
-// MASTER ADD UNITS
+/* MASTER ADD UNITS */
 document.getElementById("masterAddUnitForm").addEventListener("submit", function(e){
     e.preventDefault();
     let number = document.getElementById("masterUnitNumber").value.trim();
-    if(!number) return;
+    if (!number) return;
 
-    masterUnits.push({number,claimedBy:"Unclaimed",customName:""});
+    masterUnits.push({number, claimedBy:"Unclaimed", customName:""});
     updateMasterUnitTable();
-    document.getElementById("masterUnitNumber").value="";
+    document.getElementById("masterUnitNumber").value = "";
 });
 
-// UPDATE MASTER UNITS
+/* UPDATE MASTER TABLE */
 function updateMasterUnitTable(filteredUnits){
     let table = document.getElementById("masterUnitTable");
-    table.innerHTML = `<tr><th>Unit Number</th><th>Claimed By</th><th>Custom Name</th><th>Action</th></tr>`;
+    table.innerHTML = `<tr>
+        <th>Unit Number</th><th>Claimed By</th><th>Custom Name</th><th>Action</th>
+    </tr>`;
+
     let list = filteredUnits || masterUnits;
     list.forEach((u, index) => {
         table.innerHTML += `<tr>
             <td>${u.number}</td>
             <td>${u.claimedBy}</td>
-            <td>${u.customName||""}</td>
+            <td>${u.customName || ""}</td>
             <td><button onclick="deleteMasterUnit(${index})">Delete</button></td>
         </tr>`;
     });
 }
 
-// DELETE MASTER UNIT
+/* DELETE UNIT */
 function deleteMasterUnit(index){
     let code = prompt("Enter Master Code to delete this unit:");
-    if(code === MASTER_CODE){
+    if (code === MASTER_CODE) {
         masterUnits.splice(index,1);
         updateMasterUnitTable();
         alert("Unit deleted successfully!");
     } else {
-        alert("Incorrect Master Code. Cannot delete unit.");
+        alert("Incorrect Master Code.");
     }
 }
 
-// SEARCH MASTER UNITS
+/* SEARCH UNITS */
 function searchMasterUnits(){
-    let query=document.getElementById("unitSearch").value.toLowerCase();
-    let filtered = masterUnits.filter(u=>u.number.toLowerCase().includes(query));
+    let query = document.getElementById("unitSearch").value.toLowerCase();
+    let filtered = masterUnits.filter(u => u.number.toLowerCase().includes(query));
     updateMasterUnitTable(filtered);
 }
 
-// ADD UNIT FOR REGULAR USERS
+/* ADD REGULAR USER UNIT */
 function addUserUnit() {
-    if(isMaster) return;
+    if (isMaster) return;
+
     let typedNumber = document.getElementById("userUnitInput").value.trim();
     let customName = document.getElementById("userUnitCustomName").value.trim();
     let msg = document.getElementById("userUnitMessage");
 
-    if(!typedNumber || !customName) { msg.textContent="Enter unit number & custom name"; return; }
+    if (!typedNumber || !customName) {
+        msg.textContent = "Enter unit number & custom name";
+        return;
+    }
 
-    let foundMasterUnit = masterUnits.find(u=>u.number===typedNumber);
-    if(!foundMasterUnit) { msg.textContent="Unit not in system!"; return; }
+    let foundMasterUnit = masterUnits.find(u => u.number === typedNumber);
+    if (!foundMasterUnit) { msg.textContent="Unit not in system!"; return; }
 
-    if(units.find(u=>u.number===typedNumber)) { msg.textContent="Already added this unit!"; return; }
+    if (units.find(u => u.number === typedNumber)) { msg.textContent="Already added this unit!"; return; }
 
-    units.push({number:typedNumber,name:customName});
-    foundMasterUnit.claimedBy=currentUser;
-    foundMasterUnit.customName=customName;
+    units.push({number:typedNumber, name:customName});
+    foundMasterUnit.claimedBy = currentUser;
+    foundMasterUnit.customName = customName;
 
     msg.textContent="";
     document.getElementById("userUnitInput").value="";
@@ -363,73 +457,87 @@ function addUserUnit() {
     updateMyFeeders();
 }
 
-// REMOVE UNIT (Regular users)
+/* REMOVE UNIT */
 function removeUserUnit(unitNumber) {
     units = units.filter(u => u.number !== unitNumber);
     let masterUnit = masterUnits.find(u => u.number === unitNumber);
-    if(masterUnit) { masterUnit.claimedBy="Unclaimed"; masterUnit.customName=""; }
+    if (masterUnit) {
+        masterUnit.claimedBy="Unclaimed";
+        masterUnit.customName="";
+    }
     updateUnitTable();
     updateMyFeeders();
     updateMasterUnitTable();
 }
 
-// UPDATE UNIT TABLE
+/* UPDATE USER UNIT TABLE */
 function updateUnitTable(){
-    let table=document.getElementById("unitTable");
-    table.innerHTML=`<tr><th>Unit Number</th><th>Custom Name</th><th>Action</th></tr>`;
-    units.forEach(u=>{
-        if(masterUnits.find(m=>m.number===u.number && m.claimedBy===currentUser)){
-            table.innerHTML+=`<tr>
-                <td>${u.number}</td>
-                <td>${u.name||""}</td>
-                <td><button onclick="removeUserUnit('${u.number}')">Remove</button></td>
-            </tr>`;
+    let table = document.getElementById("unitTable");
+    table.innerHTML = `<tr><th>Unit Number</th><th>Custom Name</th><th>Action</th></tr>`;
+    units.forEach(u => {
+        if (masterUnits.find(m => m.number === u.number && m.claimedBy === currentUser)) {
+            table.innerHTML += `
+                <tr>
+                    <td>${u.number}</td>
+                    <td>${u.name || ""}</td>
+                    <td><button onclick="removeUserUnit('${u.number}')">Remove</button></td>
+                </tr>`;
         }
     });
 }
 
-// MY FEEDERS
+/* MY FEEDERS LIST */
 function updateMyFeeders(){
-    let list=document.getElementById("myFeedersList");
-    list.innerHTML="";
-    let myUnits=units.filter(u=>masterUnits.find(m=>m.number===u.number && m.claimedBy===currentUser));
+    let list = document.getElementById("myFeedersList");
+    list.innerHTML = "";
+    let myUnits = units.filter(u => masterUnits.find(m => m.number === u.number && m.claimedBy === currentUser));
     myUnits.sort((a,b)=> (a.name||"").localeCompare(b.name||""));
-    myUnits.forEach(u=>{
-        let li=document.createElement("li");
-        li.textContent=u.name || "(No Name)";
-        li.onclick=()=>showEditCustomName(u.number);
-        li.style.cursor="pointer";
+    myUnits.forEach(u => {
+        let li = document.createElement("li");
+        li.textContent = u.name || "(No Name)";
+        li.onclick = () => showEditCustomName(u.number);
+        li.style.cursor = "pointer";
         list.appendChild(li);
     });
 }
 
-// EDIT CUSTOM NAME
+/* EDIT CUSTOM NAME */
 function showEditCustomName(unitNumber){
-    editingUnitNumber=unitNumber;
-    let userUnit=units.find(u=>u.number===unitNumber);
-    document.getElementById("oldCustomName").value=userUnit.name;
-    document.getElementById("newCustomName").value="";
-    document.getElementById("editCustomNameForm").style.display="block";
+    editingUnitNumber = unitNumber;
+    let userUnit = units.find(u => u.number === unitNumber);
+    document.getElementById("oldCustomName").value = userUnit.name;
+    document.getElementById("newCustomName").value = "";
+    document.getElementById("editCustomNameForm").style.display = "block";
 }
+
 function saveCustomName(){
-    let newName=document.getElementById("newCustomName").value.trim();
-    if(!newName) return alert("Enter a new custom name");
+    let newName = document.getElementById("newCustomName").value.trim();
+    if (!newName) return alert("Enter a new custom name");
 
-    let userUnit=units.find(u=>u.number===editingUnitNumber);
-    userUnit.name=newName;
+    let userUnit = units.find(u => u.number === editingUnitNumber);
+    userUnit.name = newName;
 
-    let masterUnit=masterUnits.find(u=>u.number===editingUnitNumber);
-    if(masterUnit) masterUnit.customName=newName;
+    let masterUnit = masterUnits.find(u => u.number === editingUnitNumber);
+    if (masterUnit) masterUnit.customName = newName;
 
     updateMyFeeders();
     updateUnitTable();
     updateMasterUnitTable();
     cancelEdit();
 }
-function cancelEdit(){ editingUnitNumber=""; document.getElementById("editCustomNameForm").style.display="none"; }
 
-// INIT MASTER UNITS FOR DEMO
-masterUnits=[{number:"001",claimedBy:"",customName:""},{number:"002",claimedBy:"",customName:""},{number:"003",claimedBy:"",customName:""}];
+function cancelEdit(){
+    editingUnitNumber = "";
+    document.getElementById("editCustomNameForm").style.display = "none";
+}
+
+/* DEMO MASTER UNITS */
+masterUnits = [
+    {number:"001",claimedBy:"",customName:""},
+    {number:"002",claimedBy:"",customName:""},
+    {number:"003",claimedBy:"",customName:""}
+];
 </script>
+
 </body>
 </html>
